@@ -1,0 +1,28 @@
+version: '3'
+
+volumes:
+  db-data:
+
+services:
+  postgres:
+    image: postgres:11.3
+    ports:
+      - "5432:5432"
+    container_name: pgdb
+    hostname: postgres
+    networks:
+      mnemo-network:
+        aliases:
+          - pgdb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=qwerty
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=dev
+  redis:
+    image: redis:alpine
+
+networks:
+  mnemo-network:
+    driver: "bridge"
