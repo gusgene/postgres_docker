@@ -1,0 +1,53 @@
+version: '3'
+
+volumes:
+  db-data:
+
+services:
+  postgres:
+    image: postgres:11.3
+    ports:
+      - "5432:5432"
+    container_name: pgdb
+    hostname: postgres
+    networks:
+      mnemo-network:
+        aliases:
+          - pgdb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=qwerty
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=dev
+
+  keycloak:
+      image: jboss/keycloak:latest
+      ports:
+        - "8080:8080"
+        - "8443:8443"
+      container_name: keycloak
+      hostname: keycloak
+      command: ["-Dkeycloak.profile.feature.admin_fine_grained_authz=enabled -Dkeycloak.profile.feature.token_exchange=enabled"]
+      networks:
+        mnemo-network:
+          aliases:
+            - keycloak
+      volumes:
+        - ./deployments:/opt/jboss/keycloak/standalone/deployments
+      environment:
+        - KEYCLOAK_USER=admin
+        - KEYCLOAK_PASSWORD=admin
+        - DB_VENDOR=POSTGRES
+        - DB_ADDR=postgres
+        - DB_USER=postgres
+        - DB_PASSWORD=qwerty
+        - DB_DATABASE=dev
+        - PROXY_ADDRESS_FORWARDING=true
+        - KEYCLOAK_LOGLEVEL=TRACE
+      depends_on:
+        - postgres
+
+networks:
+  mnemo-network:
+    driver: "bridge"
